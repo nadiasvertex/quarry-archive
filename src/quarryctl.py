@@ -19,6 +19,11 @@ def archive(global_options, global_args):
     a=Archive(global_options.config_filename)
     a.update()
     
+def recompress(global_options, global_args):
+    "Run the archive recompress operation."
+    a=Archive(global_options.config_filename)
+    a.recompress()
+    
 def search(global_options, global_args):
     "Run the search operation"
     parser = OptionParser()
@@ -81,8 +86,9 @@ parser.add_option("-q", "--quiet",
 # Setup logging in accord with the options on the command line
 logging.basicConfig(level=logging.DEBUG if options.verbose else logging.ERROR)    
 
-cmd_map = { "archive" : archive,
-            "search"  : search }
+cmd_map = { "archive"    : archive,
+            "recompress" : recompress,
+            "search"     : search }
 
 cmd = args.pop(0).lower()
 

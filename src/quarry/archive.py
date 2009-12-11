@@ -58,6 +58,9 @@ class Archive:
     def _save_state(self):
         pickle.dump(self.state, open(self.state_path, "wb"))
         
+    def recompress(self):
+        self.db.recompress()
+        
     def update(self):
         """This method reads the message id's from the server and determines if it needs to download 
         more messages into it's database."""
