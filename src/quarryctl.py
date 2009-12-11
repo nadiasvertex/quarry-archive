@@ -24,6 +24,11 @@ def recompress(global_options, global_args):
     a=Archive(global_options.config_filename)
     a.recompress()
     
+def reindex(global_options, global_args):
+    "Run the archive recompress operation."
+    a=Archive(global_options.config_filename)
+    a.reindex()
+    
 def search(global_options, global_args):
     "Run the search operation"
     parser = OptionParser()
@@ -88,6 +93,7 @@ logging.basicConfig(level=logging.DEBUG if options.verbose else logging.ERROR)
 
 cmd_map = { "archive"    : archive,
             "recompress" : recompress,
+            "reindex"    : reindex,
             "search"     : search }
 
 cmd = args.pop(0).lower()

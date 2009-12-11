@@ -77,6 +77,7 @@ class MessageDb:
             # Get message and decompress it
             cur.execute("SELECT contents FROM messages WHERE id=?", (id, ))
             msg = cur.fetchone()[0]
+            prev_size = len(msg)
             try:
                 msg = bz2.decompress(msg)
             except IOError:
@@ -85,9 +86,20 @@ class MessageDb:
             
             # Compress the message with the new compression value
             logging.debug("compress message id: %s with level %d", id, compression_level)
-            cur.execute("UPDATE messages SET contents=? WHERE id=?", (sqlite3.Binary(bz2.compress(msg, compression_level)), id))
+            msg = sqlite3.Binary(bz2.compress(msg, compression_level))
+            size_change = prev_size - len(msg)
             
+            logging.debug("compression difference: %d bytes", size_change)
+            if size_change!=0:
+                cur.execute("UPDATE messages SET contents=? WHERE id=?", (msg, id))
+            else:
+                logging.warning("no change in size was detected, so this message was not updated.")
+        
+        logging.info("saving any changes made")    
         self.commit()
+        
+        logging.info("vacuuming the database")
+        self.con.execute("VACUUM")
             
     def save_message(self, folder, msg):
         """The message is a message object created from the email module that ships
@@ -129,6 +141,13 @@ class MessageDb:
     def rollback(self):
         "Rolls back any changes made to the database since the last time commit() was called."
         self.con.rollback()
+        
+    def messages(self):
+        "This is a generator which will let you iterate over all the messages in the database."
+        cur = self.con.cursor()
+        for id, contents in cur.execute("SELECT id, contents FROM messages"):
+            msg = bz2.decompress(contents)
+            yield (id, email.message_from_string(msg))            
         
     def search(self, query):
         "This expects a query that selects one or more message ids.  The return will be message objects that match the query."

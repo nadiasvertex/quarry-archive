@@ -12,18 +12,29 @@ import whoosh.index as index
 from whoosh.fields import *
 
 class Indexer:
-    def __init__(self, index_dir):        
+    def __init__(self, index_dir):
+        self.index_dir = index_dir
+                
         if not os.path.exists(index_dir):
-            logging.info("creating index directory: %s", index_dir)
-            os.makedirs(index_dir)
-            
-            logging.info("creating index")
-            self.schema = Schema(path=STORED, subject=TEXT, from_addr=TEXT, to_addr=TEXT, content=TEXT)
-            self.ix = index.create_in(index_dir, self.schema)
+            self._create_index()
         else:
             self.ix = index.open_dir(index_dir)        
         
         self.writer = None
+        
+    def _create_index(self):
+        if not os.path.exists(self.index_dir):
+            logging.info("creating index directory: %s", self.index_dir)
+            os.makedirs(self.index_dir)
+        
+        logging.info("creating index")
+        self.schema = Schema(path=STORED, subject=TEXT, from_addr=TEXT, to_addr=TEXT, content=TEXT)
+        self.ix = index.create_in(self.index_dir, self.schema)
+        
+    def clear(self):
+        "Clears out the previous index."
+        del self.ix
+        self._create_index() 
         
     def add_message(self, msg_id, msg):
         if not self.writer:

@@ -58,6 +58,19 @@ class Archive:
     def _save_state(self):
         pickle.dump(self.state, open(self.state_path, "wb"))
         
+    def reindex(self):
+        "This will delete the existing index, and reread all existing indexes."
+        logging.warning("clearing index")
+        self.index.clear()
+                
+        logging.info("starting reindexing process (this may take a while)")
+        for id, msg in self.db.messages():
+            logging.debug("indexing message %s", id)
+            self.index.add_message(id, msg)        
+            
+        logging.info("saving index")
+        self.index.commit()
+        
     def recompress(self):
         self.db.recompress()
         
