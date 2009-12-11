@@ -85,7 +85,7 @@ class MessageDb:
             
             # Compress the message with the new compression value
             logging.debug("compress message id: %s with level %d", id, compression_level)
-            cur.execute("INSERT INTO messages(contents) VALUES(?)", (sqlite3.Binary(bz2.compress(msg, compression_level)), ))
+            cur.execute("UPDATE messages SET contents=? WHERE id=?", (sqlite3.Binary(bz2.compress(msg, compression_level)), id))
             
         self.commit()
             
