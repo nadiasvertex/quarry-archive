@@ -11,7 +11,7 @@ import logging
 import os
 import sqlite3
 import sys
-import zlib
+import bz2
 
 create_schema = """
 CREATE TABLE messages(id INTEGER PRIMARY KEY AUTOINCREMENT, contents BLOB);
@@ -78,14 +78,14 @@ class MessageDb:
                 cur.execute("SELECT contents FROM messages WHERE id=?", (id, ))
                 msg = cur.fetchone()[0]
                 try:
-                    msg = zlib.decompress(msg)
-                except zlib.error:
+                    msg = bz2.decompress(msg)
+                except IOError:
                     # We expect this here because the data may not have been compressed.                    
-                    logging.exception("This exception may be okay if this is the first time you have run recompress, and this is an old database.")                                        
+                    logging.exception("This exception may be okay if this is the first time you have run recompress, and this is an old database.")                                                           
                 
                 # Compress the message with the new compression value
                 logging.debug("compress message id: %s with level %d", id, compression_level)
-                cur.execute("INSERT INTO messages(contents) VALUES(?)", (sqlite3.Binary(zlib.compress(msg, compression_level)), ))
+                cur.execute("INSERT INTO messages(contents) VALUES(?)", (sqlite3.Binary(bz2.compress(msg, compression_level)), ))
             
     def save_message(self, folder, msg):
         """The message is a message object created from the email module that ships
@@ -100,7 +100,7 @@ class MessageDb:
         cur = self.con.cursor()
         
         # Save the message            
-        cur.execute("INSERT INTO messages(contents) VALUES(?)", (sqlite3.Binary(zlib.compress(msg.as_string(), compression_level)), ))            
+        cur.execute("INSERT INTO messages(contents) VALUES(?)", (sqlite3.Binary(bz2.compress(msg.as_string(), compression_level)), ))            
         msg_id = cur.lastrowid
         
         # Save the attributes separately so they are searchable
@@ -139,7 +139,7 @@ class MessageDb:
         msgs = []
         for id in msg_ids:
             cur.execute("SELECT contents FROM messages WHERE id=?", id)
-            msg = zlib.decompress(cur.fetchone()[0])
+            msg = bz2.decompress(cur.fetchone()[0])
             msg = email.message_from_string(msg)
             
             for name, value in cur.execute("SELECT name, value FROM attributes as attr INNER JOIN attribute_to_message AS atm ON attr.id = atm.attribute_id AND atm.message_id=?", id):
