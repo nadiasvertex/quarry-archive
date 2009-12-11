@@ -85,7 +85,7 @@ class MessageDb:
                 
                 # Compress the message with the new compression value
                 logging.debug("compress message id: %s with level %d", id, compression_level)
-                cur.execute("INSERT INTO messages(contents) VALUES(?)", (zlib.compress(msg, compression_level), ))
+                cur.execute("INSERT INTO messages(contents) VALUES(?)", (sqlite3.Binary(zlib.compress(msg, compression_level)), ))
             
     def save_message(self, folder, msg):
         """The message is a message object created from the email module that ships
@@ -100,7 +100,7 @@ class MessageDb:
         cur = self.con.cursor()
         
         # Save the message            
-        cur.execute("INSERT INTO messages(contents) VALUES(?)", (zlib.compress(msg.as_string(), compression_level), ))            
+        cur.execute("INSERT INTO messages(contents) VALUES(?)", (sqlite3.Binary(zlib.compress(msg.as_string(), compression_level)), ))            
         msg_id = cur.lastrowid
         
         # Save the attributes separately so they are searchable
