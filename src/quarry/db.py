@@ -71,21 +71,23 @@ class MessageDb:
         cur.execute("SELECT id FROM messages")
         msg_ids = cur.fetchall()
         
-        with self.con:
-            for id, in msg_ids:
-                logging.debug("decompress message id: %s", id)
-                # Get message and decompress it
-                cur.execute("SELECT contents FROM messages WHERE id=?", (id, ))
-                msg = cur.fetchone()[0]
-                try:
-                    msg = bz2.decompress(msg)
-                except IOError:
-                    # We expect this here because the data may not have been compressed.                    
-                    logging.exception("This exception may be okay if this is the first time you have run recompress, and this is an old database.")                                                           
-                
-                # Compress the message with the new compression value
-                logging.debug("compress message id: %s with level %d", id, compression_level)
-                cur.execute("INSERT INTO messages(contents) VALUES(?)", (sqlite3.Binary(bz2.compress(msg, compression_level)), ))
+        
+        for id, in msg_ids:
+            logging.debug("decompress message id: %s", id)
+            # Get message and decompress it
+            cur.execute("SELECT contents FROM messages WHERE id=?", (id, ))
+            msg = cur.fetchone()[0]
+            try:
+                msg = bz2.decompress(msg)
+            except IOError:
+                # We expect this here because the data may not have been compressed.                    
+                logging.exception("This exception may be okay if this is the first time you have run recompress, and this is an old database.")                                                           
+            
+            # Compress the message with the new compression value
+            logging.debug("compress message id: %s with level %d", id, compression_level)
+            cur.execute("INSERT INTO messages(contents) VALUES(?)", (sqlite3.Binary(bz2.compress(msg, compression_level)), ))
+            
+        self.commit()
             
     def save_message(self, folder, msg):
         """The message is a message object created from the email module that ships
