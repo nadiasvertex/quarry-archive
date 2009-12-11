@@ -31,13 +31,14 @@ def reindex(global_options, global_args):
     
 def search(global_options, global_args):
     "Run the search operation"
-    parser = OptionParser()
+    parser = OptionParser(usage="usage: %prog [options] search [search options]",
+                          description="search allows you to search the archive for matching e-mails.  You can use full text search, or just filter by attributes, or both.")
     
     parser.add_option("-f", "--filter", dest="filters",
                       action="append", help="search using FILTER_EXPRESSION", metavar="FILTER_EXPRESSION")
     
     parser.add_option("-t", "--text", dest="text_search", default=None,
-                      help="search full text for words", metavar="WORDS")
+                      help="search full text using search expression", metavar="EXPRESSION")
     
     parser.add_option("-e", "--export", dest="export", default=None,
                       help="export the e-mails to FOLDER", metavar="FOLDER")
@@ -75,8 +76,14 @@ def search(global_options, global_args):
                 
             #print "Message display ends."
                 
+cmd_map = { "archive"    : archive,
+            "recompress" : recompress,
+            "reindex"    : reindex,
+            "search"     : search }
 
-parser = OptionParser()
+parser = OptionParser(usage="usage: %prog [options] cmd [cmd_options]",
+                      description="quarryctl is a front end that interfaces to the quarry Python package.  It is used to perform various operations like archiving and searching your e-mail.  To get help on each command type command --help.  For example, to get help on search type search --help.  Commands available are: {cmds}".format(cmds=", ".join(cmd_map.keys())) 
+                      )
 parser.disable_interspersed_args()
 
 parser.add_option("-c", "--config", dest="config_filename",
@@ -90,11 +97,6 @@ parser.add_option("-q", "--quiet",
 
 # Setup logging in accord with the options on the command line
 logging.basicConfig(level=logging.DEBUG if options.verbose else logging.ERROR)    
-
-cmd_map = { "archive"    : archive,
-            "recompress" : recompress,
-            "reindex"    : reindex,
-            "search"     : search }
 
 cmd = args.pop(0).lower()
 
