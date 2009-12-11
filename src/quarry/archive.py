@@ -5,8 +5,6 @@ Created on Dec 10, 2009
 @summary: Ties together the message database and the fetcher
 '''
 
-from ConfigParser import SafeConfigParser
-
 import common
 import db
 import fetch
@@ -19,9 +17,7 @@ import time
 
 class Archive:
     def __init__(self, archive_config_file):
-        self.config = SafeConfigParser()
-        self.config.read(archive_config_file)
-                
+        self.config = common.get_config(config_filename=archive_config_file)        
         self._load_state()
         
         self.db = db.MessageDb(self.config.get("archive", "name"))

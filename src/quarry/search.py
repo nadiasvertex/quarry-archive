@@ -4,8 +4,6 @@ Created on Dec 10, 2009
 @author: Christopher Nelson
 '''
 
-from ConfigParser import SafeConfigParser
-
 import common
 import db
 import full_text
@@ -17,8 +15,7 @@ class Engine:
         self.global_options=global_options
         self.options=options
         
-        self.config = SafeConfigParser()
-        self.config.read(global_options.config_filename)
+        self.config = common.get_config(config_filename=global_options.config_filename)
         
         self.db = db.MessageDb(self.config.get("archive", "name"))
         self.index = full_text.Indexer(os.path.join(common.get_home_dir(), self.config.get("archive", "name")))

@@ -12,9 +12,7 @@ import whoosh.index as index
 from whoosh.fields import *
 
 class Indexer:
-    def __init__(self, index_dir):
-        
-        
+    def __init__(self, index_dir):        
         if not os.path.exists(index_dir):
             logging.info("creating index directory: %s", index_dir)
             os.makedirs(index_dir)
